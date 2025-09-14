@@ -40,8 +40,9 @@ interface RecentActivity {
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null)
-  const [isListening, setIsListening] = useState(false)
-  const [voiceCommand, setVoiceCommand] = useState('')
+  const [latestTranscript, setLatestTranscript] = useState('Waiting for voice commands...')
+  const [transcriptError, setTranscriptError] = useState('')
+  const [lastProcessedTranscript, setLastProcessedTranscript] = useState('')
   const [stats, setStats] = useState<DashboardStats>({
     todayAppointments: 0,
     pendingReviews: 0,
@@ -216,42 +217,56 @@ export default function DashboardPage() {
     return `${Math.floor(diffInMinutes / 1440)} days ago`
   }
 
-  const startVoiceRecording = () => {
-    setIsListening(true)
-    // Implement Web Speech API here
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition
-      const recognition = new SpeechRecognition()
+  // Fetch transcripts from external API
+  const fetchTranscripts = async () => {
+    setTranscriptError('')
+    try {
+      const res = await fetch('https://shaved-delayed-physician-magazine.trycloudflare.com/transcripts', { 
+        mode: 'cors', 
+        cache: 'no-store' 
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const ct = res.headers.get('content-type') || ''
+      if (!ct.includes('application/json')) {
+        const head = (await res.text()).slice(0, 120)
+        throw new Error(`Expected JSON, got "${ct}". First chars: ${head}`)
+      }
+      const data = await res.json()
+      const newTranscript = data[0]?.transcript ?? '(none)'
       
-      recognition.continuous = false
-      recognition.interimResults = false
-      recognition.lang = 'en-US'
-
-      recognition.onstart = () => {
-        setIsListening(true)
+      // Only process if we have a new transcript that's different from the last one
+      if (newTranscript && newTranscript !== '(none)' && newTranscript !== lastProcessedTranscript) {
+        setLatestTranscript(newTranscript)
+        setLastProcessedTranscript(newTranscript)
+        await processVoiceCommand(newTranscript)
+      } else if (newTranscript === '(none)') {
+        setLatestTranscript('No voice commands detected')
       }
-
-      recognition.onresult = async (event: any) => {
-        const command = event.results[0][0].transcript
-        setVoiceCommand(command)
-        await processVoiceCommand(command)
-      }
-
-      recognition.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error)
-        setIsListening(false)
-      }
-
-      recognition.onend = () => {
-        setIsListening(false)
-      }
-
-      recognition.start()
-    } else {
-      alert('Speech recognition not supported in this browser')
-      setIsListening(false)
+    } catch (e) {
+      setTranscriptError(String(e))
+      console.error('Transcript fetch error:', e)
     }
   }
+
+  // Poll for transcripts every 4 seconds
+  useEffect(() => {
+    let alive = true
+    
+    const pollTranscripts = () => {
+      if (alive) fetchTranscripts()
+    }
+    
+    // Initial fetch
+    pollTranscripts()
+    
+    // Set up polling interval
+    const intervalId = setInterval(pollTranscripts, 4000)
+    
+    return () => {
+      alive = false
+      clearInterval(intervalId)
+    }
+  }, [lastProcessedTranscript])
 
   const processVoiceCommand = async (command: string) => {
     try {
@@ -319,7 +334,7 @@ export default function DashboardPage() {
         } else {
           console.log('Voice command saved successfully:', insertData)
           // Show success message
-          setVoiceCommand(`✅ Command saved: "${command}"`)
+          setLatestTranscript(`✅ Command processed: "${command}"`)
           // Refresh dashboard data to show new pending review
           setTimeout(() => {
             loadDashboardData()
@@ -423,34 +438,20 @@ export default function DashboardPage() {
         <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-6 mb-8 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold mb-2">Hey Bob, I need help with...</h2>
+              <h2 className="text-2xl font-bold mb-2">Bob AI - Voice Command Monitor</h2>
               <p className="text-blue-100">
-                {isListening 
-                  ? "Listening... Speak your command" 
-                  : "Click the microphone to give Bob a voice command"
-                }
+                Automatically processing voice commands from external API
               </p>
-              {voiceCommand && (
-                <div className="mt-3 bg-white/10 rounded-lg p-3">
-                  <p className="text-sm">Last command: "{voiceCommand}"</p>
-                </div>
-              )}
+              <div className="mt-3 bg-white/10 rounded-lg p-3">
+                <p className="text-sm">Latest: {latestTranscript}</p>
+                {transcriptError && (
+                  <p className="text-xs text-red-200 mt-1">Error: {transcriptError}</p>
+                )}
+              </div>
             </div>
-            <button
-              onClick={startVoiceRecording}
-              disabled={isListening}
-              className={`rounded-full p-4 transition-all ${
-                isListening 
-                  ? 'bg-red-500 animate-pulse' 
-                  : 'bg-white/20 hover:bg-white/30'
-              }`}
-            >
-              {isListening ? (
-                <MicOff className="h-8 w-8" />
-              ) : (
-                <Mic className="h-8 w-8" />
-              )}
-            </button>
+            <div className="rounded-full p-4 bg-white/20">
+              <Mic className="h-8 w-8 animate-pulse" />
+            </div>
           </div>
         </div>
 
@@ -605,10 +606,41 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {/* Voice Commands API Monitor */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Voice Commands</h3>
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-gray-500">API Listening</span>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Mic className="h-4 w-4 text-blue-600 animate-pulse" />
+                    <span className="text-sm font-medium text-blue-900">Live Transcript Monitor</span>
+                  </div>
+                  <p className="text-sm text-gray-700">{latestTranscript}</p>
+                </div>
+                
+                {transcriptError && (
+                  <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                    <p className="text-sm text-red-600">API Error: {transcriptError}</p>
+                  </div>
+                )}
+                
+                <div className="text-xs text-gray-500">
+                  🎤 Voice commands are automatically detected and processed from the external API every 4 seconds
+                </div>
+              </div>
+            </div>
+
             {/* Today's Schedule Preview */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Today's Schedule</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Today&apos;s Schedule</h3>
                 <div className="flex items-center space-x-1">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   <span className="text-xs text-gray-500">Live</span>
