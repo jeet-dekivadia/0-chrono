@@ -164,12 +164,17 @@ export default function PatientVisualization() {
     const nodes: NetworkNode[] = []
     const links: NetworkLink[] = []
 
-    // Create patient nodes
+    // Create patient nodes with null safety
     patients.forEach(patient => {
+      if (!patient || !patient.id) return
+      
       const connections = getPatientConnections(patient.id, appointments, prescriptions)
+      const firstName = patient.first_name || 'Unknown'
+      const lastName = patient.last_name || 'Patient'
+      
       nodes.push({
         id: patient.id,
-        name: `${patient.first_name} ${patient.last_name}`,
+        name: `${firstName} ${lastName}`,
         type: 'patient',
         size: Math.max(10, connections * 2),
         color: patient.status === 'critical' ? '#ef4444' : patient.status === 'active' ? '#10b981' : '#6b7280',
@@ -198,9 +203,9 @@ export default function PatientVisualization() {
         connections: patientCount
       })
 
-      // Link patients to conditions
+      // Link patients to conditions with null safety
       patients.forEach(patient => {
-        if (patient.medical_conditions?.includes(condition)) {
+        if (patient && patient.id && patient.medical_conditions?.includes(condition)) {
           links.push({
             source: patient.id,
             target: `condition_${condition}`,
@@ -227,9 +232,9 @@ export default function PatientVisualization() {
         connections: prescriptionCount
       })
 
-      // Link patients to medications
+      // Link patients to medications with null safety
       prescriptions.forEach(prescription => {
-        if (prescription.medication_name === medication) {
+        if (prescription && prescription.patient_id && prescription.medication_name === medication) {
           links.push({
             source: prescription.patient_id,
             target: `medication_${medication}`,
@@ -255,8 +260,10 @@ export default function PatientVisualization() {
 
     const { nodes, links } = createNetworkData()
 
-    // Filter nodes based on search and filter
+    // Filter nodes based on search and filter with null safety
     const filteredNodes = nodes.filter(node => {
+      if (!node || !node.name || !node.id) return false
+      
       const matchesSearch = node.name.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesFilter = selectedFilter === 'all' || 
         (selectedFilter === 'critical' && node.data?.status === 'critical') ||
@@ -266,8 +273,16 @@ export default function PatientVisualization() {
     })
 
     const filteredLinks = links.filter(link => {
-      const sourceExists = filteredNodes.some(n => n.id === (typeof link.source === 'string' ? link.source : link.source.id))
-      const targetExists = filteredNodes.some(n => n.id === (typeof link.target === 'string' ? link.target : link.target.id))
+      // Add null safety checks for link.source and link.target
+      if (!link.source || !link.target) return false
+      
+      const sourceId = typeof link.source === 'string' ? link.source : link.source?.id
+      const targetId = typeof link.target === 'string' ? link.target : link.target?.id
+      
+      if (!sourceId || !targetId) return false
+      
+      const sourceExists = filteredNodes.some(n => n && n.id === sourceId)
+      const targetExists = filteredNodes.some(n => n && n.id === targetId)
       return sourceExists && targetExists
     })
 
