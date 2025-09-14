@@ -50,13 +50,3 @@ The market opportunity was staggering. DrChrono, with its 100,000+ healthcare pr
 *Built at hackMIT 2024 - Reimagining healthcare, one voice command at a time.* 🩺🤖
 
 ---
-
-## 📸 Screenshots  
-
-| Dashboard | Clinical Tasks | Patients |  
-|-----------|----------------|----------|  
-| ![Dashboard](assets/dashboard.png) | ![Tasks](assets/tasks.png) | ![Patients](assets/patients.png) |  
-
-| Bob Assistant | Knowledge Graph | Analytics |  
-|---------------|-----------------|-----------|  
-| ![Bob](assets/bob.png) | ![KG](assets/knowledge-graph.png) | ![Analytics](assets/analytics.png) |  
