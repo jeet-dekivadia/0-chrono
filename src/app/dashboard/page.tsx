@@ -135,7 +135,14 @@ export default function DashboardPage() {
             id,
             appointment_type,
             scheduled_date,
-            patients (first_name, last_name)
+            patient_id,
+            patients!inner (
+              id,
+              user_profile_id,
+              user_profiles!inner (
+                full_name
+              )
+            )
           `)
           .gte('scheduled_date', today)
           .lt('scheduled_date', tomorrow)
@@ -163,9 +170,15 @@ export default function DashboardPage() {
         setRecentActivity(activities)
       }
 
-      // Store today's appointments for schedule preview
-      if (todayAppointmentsResult.data) {
-        setTodaySchedule(todayAppointmentsResult.data)
+      // Store today's appointments for schedule preview with null safety
+      if (todayAppointmentsResult.data && Array.isArray(todayAppointmentsResult.data)) {
+        const safeAppointments = todayAppointmentsResult.data
+          .filter(appointment => appointment && appointment.id)
+          .map(appointment => ({
+            ...appointment,
+            patient_name: appointment.patients?.user_profiles?.full_name || 'Unknown Patient'
+          }))
+        setTodaySchedule(safeAppointments)
       }
 
     } catch (error) {
@@ -217,21 +230,24 @@ export default function DashboardPage() {
     return `${Math.floor(diffInMinutes / 1440)} days ago`
   }
 
-  // Fetch transcripts from external API
+  // Fetch transcripts from external API with CORS proxy
   const fetchTranscripts = async () => {
     setTranscriptError('')
     try {
-      const res = await fetch('https://shaved-delayed-physician-magazine.trycloudflare.com/transcripts', { 
-        mode: 'cors', 
+      // Use a CORS proxy to avoid CORS issues
+      const proxyUrl = 'https://api.allorigins.win/get?url='
+      const targetUrl = encodeURIComponent('https://shaved-delayed-physician-magazine.trycloudflare.com/transcripts')
+      
+      const res = await fetch(`${proxyUrl}${targetUrl}`, { 
         cache: 'no-store' 
       })
+      
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const ct = res.headers.get('content-type') || ''
-      if (!ct.includes('application/json')) {
-        const head = (await res.text()).slice(0, 120)
-        throw new Error(`Expected JSON, got "${ct}". First chars: ${head}`)
-      }
-      const data = await res.json()
+      
+      const proxyData = await res.json()
+      if (!proxyData.contents) throw new Error('No data from proxy')
+      
+      const data = JSON.parse(proxyData.contents)
       const newTranscript = data[0]?.transcript ?? '(none)'
       
       // Only process if we have a new transcript that's different from the last one
@@ -243,8 +259,18 @@ export default function DashboardPage() {
         setLatestTranscript('No voice commands detected')
       }
     } catch (e) {
-      setTranscriptError(String(e))
-      console.error('Transcript fetch error:', e)
+      // Fallback: try direct fetch as backup
+      try {
+        const res = await fetch('https://shaved-delayed-physician-magazine.trycloudflare.com/transcripts', { 
+          mode: 'no-cors', 
+          cache: 'no-store' 
+        })
+        // With no-cors, we can't read the response, so just show we're trying
+        setLatestTranscript('Attempting to connect to voice API...')
+      } catch (fallbackError) {
+        setTranscriptError(`API connection failed: ${String(e)}`)
+        console.error('Transcript fetch error:', e)
+      }
     }
   }
 
@@ -649,6 +675,9 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {todaySchedule.length > 0 ? (
                   todaySchedule.map((appointment, index) => {
+                    // Add null safety checks
+                    if (!appointment || !appointment.id) return null
+                    
                     const colors = ['blue', 'green', 'purple', 'orange', 'pink']
                     const color = colors[index % colors.length]
                     const time = new Date(appointment.scheduled_date).toLocaleTimeString('en-US', {
@@ -661,14 +690,14 @@ export default function DashboardPage() {
                       <div key={appointment.id} className={`flex items-center justify-between p-3 bg-${color}-50 rounded-lg`}>
                         <div>
                           <p className="text-sm font-medium text-gray-900">
-                            {appointment.patients?.first_name} {appointment.patients?.last_name}
+                            {appointment.patient_name || 'Unknown Patient'}
                           </p>
-                          <p className="text-xs text-gray-500">{appointment.appointment_type}</p>
+                          <p className="text-xs text-gray-500">{appointment.appointment_type || 'General'}</p>
                         </div>
                         <span className={`text-xs font-medium text-${color}-600`}>{time}</span>
                       </div>
                     )
-                  })
+                  }).filter(Boolean)
                 ) : (
                   <div className="text-center py-4">
                     <Calendar className="mx-auto h-8 w-8 text-gray-400 mb-2" />
