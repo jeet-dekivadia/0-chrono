@@ -1,0 +1,30 @@
+Your job is to link notes about a patient together. I will hand you a JSON of raw chunks of clinical information, and you need to return links between them if they are related.
+
+Conditions the patients has been diagnosed with:
+<PATIENT_DIAGNOSES>
+  
+Lab tests the patient has completed:
+<PATIENT_LABS>
+
+Medications the patient is taking:
+<PATIENT_MEDICATIONS>
+
+You will return a list of links between nodes. Individual links will be of the format {"source": "title of node A", "target": "title of node B","value": 1, "description": "why this edge is needed"}.
+
+You will output the links in this format:
+```json
+[
+  {
+    "source": "title of node A",
+    "source_type": "type of source data",
+    "target": "title of node B",
+    "target_type": "type of target data",
+    "description": "Why this relationship is important"
+  }
+]
+```
+
+
+Ensure the JSON is syntactically valid (commas between all fields and objects) and don't forget to terminate links.
+
+Ensure that you use this exact format, or else the computer will not be able to parse the input and the patient will not recieve the care they deserve. Do not include any other free form text. I will tip you $200. 

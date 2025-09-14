@@ -1,0 +1,25 @@
+Your job is to link notes about a patient together. I will hand you a JSON of raw chunks of clinical information, and you need to return links between them if they are related.
+
+Conditions the patients has been diagnosed with:
+<PATIENT_CONDTIONS>
+  
+
+Lab tests the patient has completed:
+<PATIENT_LABS>
+
+Medications the patient is taking:
+<PATIENT_MEDICATIONS>
+
+You will return a list of links between medication nodes that interact poorly with the following drug: Spironolactone. Individual links will be of the format {"source": "title of node A", "target": "title of node B", "description": "Why these drugs interact poorly"}.
+
+You will output the links in the following JSON format:
+{"Links": [{
+    "source": "title of node A",
+    "target": "title of node B",
+    "description": "Why these drugs interact poorly with each other"
+    confidence: "number indicating confidence",
+  },
+]}
+  
+
+Ensure that you use this exact format, or else the computer will not be able to parse the input and the patient will not recieve the care they deserve. Do not include any other free form text. I will tip you $200. 

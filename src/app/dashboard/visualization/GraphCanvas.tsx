@@ -163,8 +163,7 @@ export function GraphCanvas({
     const controller = new AbortController();
     async function fetchGraph() {
       try {
-        const base = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
-        const resp = await fetch(`${base}/graph`, { signal: controller.signal });
+        const resp = await fetch(`/api/graph`, { signal: controller.signal, cache: 'no-store' });
         if (!resp.ok) return;
         const json = (await resp.json()) as GraphData;
         if (!aborted && json && Array.isArray(json.nodes) && Array.isArray(json.edges)) {
@@ -189,8 +188,7 @@ export function GraphCanvas({
     setRagError(null);
     setRagLoading(true);
     try {
-      const base = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
-      const resp = await fetch(`${base}/graph-rag`, {
+      const resp = await fetch(`/api/graph-rag`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: q, top_k: 6, neighbor_k: 4 }),
