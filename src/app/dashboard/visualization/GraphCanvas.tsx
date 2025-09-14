@@ -95,11 +95,7 @@ function nodeRadius(t: NodeType, degree = 0) {
 }
 
 function edgeColor(e: GraphEdge) {
-  if (e.type === "interacts_with" || e.type === "contraindicated_with") {
-    if (e.severity === "high") return "#dc2626"; // red-600
-    if (e.severity === "medium") return "#f59e0b"; // amber-500
-    return "#10b981"; // emerald-500 (low)
-  }
+  // Use a single neutral color for all edges (severity and type not color-coded)
   return "#94a3b8"; // slate-400
 }
 
@@ -156,6 +152,16 @@ export function GraphCanvas({
 
     return { nodes, edges };
   }, [data, serverData]);
+
+  // Legend items
+  const nodeLegendItems = React.useMemo(
+    () => [
+      { type: "Drug" as const, label: "Drug" },
+      { type: "Condition" as const, label: "Condition" },
+      { type: "LabTest" as const, label: "LabTest" },
+    ],
+    []
+  );
 
   // Try to fetch from backend if available (no auth; dev only)
   React.useEffect(() => {
@@ -498,6 +504,28 @@ export function GraphCanvas({
         role="img"
         aria-label="Interactive Knowledge Graph"
       />
+      {/* Legend */}
+      <div
+        className="absolute bottom-0 right-0 z-20 m-3 max-w-sm rounded-lg border border-zinc-200/70 bg-white/90 p-3 text-xs text-zinc-800 shadow-sm backdrop-blur dark:border-zinc-700/70 dark:bg-zinc-900/80 dark:text-zinc-200"
+        role="note"
+        aria-label="Legend"
+      >
+        <div className="mb-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Legend</div>
+        <div>
+          <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Nodes</div>
+          <ul className="space-y-1">
+            {nodeLegendItems.map((item) => (
+              <li key={item.type} className="flex items-center gap-2">
+                <span
+                  aria-hidden
+                  style={{ backgroundColor: nodeColor(item.type), width: 10, height: 10, borderRadius: 9999, display: "inline-block", boxShadow: "0 0 0 2px #fff" }}
+                />
+                <span>{item.label}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
       {hovered && (
         <div
           className="pointer-events-none absolute z-20 max-w-xs translate-x-3 translate-y-3 rounded-md border border-zinc-200/70 bg-white/95 p-3 text-xs shadow-lg backdrop-blur dark:border-zinc-700/70 dark:bg-zinc-900/90"
