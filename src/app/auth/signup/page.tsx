@@ -48,9 +48,9 @@ export default function SignupPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-2">
             <Stethoscope className="h-10 w-10 text-blue-600" />
-            <span className="text-3xl font-bold text-gray-900">0chrono</span>
+            <span className="text-3xl font-bold text-black">0chrono</span>
           </Link>
-          <p className="text-gray-600 mt-2">Create your account</p>
+          <p className="text-gray-800 mt-2 font-medium">Create your account</p>
         </div>
 
         {/* Signup Form */}
@@ -64,7 +64,7 @@ export default function SignupPage() {
 
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-black mb-2">
                 Email Address
               </label>
               <div className="relative">
@@ -75,7 +75,7 @@ export default function SignupPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-black placeholder-gray-500"
                   placeholder="doctor@hospital.com"
                 />
               </div>
@@ -83,7 +83,7 @@ export default function SignupPage() {
 
             {/* Name Field */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="name" className="block text-sm font-semibold text-black mb-2">
                 Full Name
               </label>
               <div className="relative">
@@ -94,7 +94,7 @@ export default function SignupPage() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-black placeholder-gray-500"
                   placeholder="Dr. John Smith"
                 />
               </div>
@@ -112,9 +112,9 @@ export default function SignupPage() {
 
           {/* Sign In Link */}
           <div className="mt-6 text-center">
-            <p className="text-gray-600">
+            <p className="text-gray-800 font-medium">
               Already have an account?{' '}
-              <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-semibold">
+              <Link href="/auth/login" className="text-blue-700 hover:text-blue-800 font-bold">
                 Sign in
               </Link>
             </p>
