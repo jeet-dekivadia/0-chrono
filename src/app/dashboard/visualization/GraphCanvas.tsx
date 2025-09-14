@@ -380,7 +380,7 @@ export function GraphCanvas({
     simulationRef.current = simulation;
 
     // Set up drag behavior
-    const dragBehavior = d3drag()
+    const dragBehavior = d3drag<SVGCircleElement, GraphNode>()
       .on("start", (event: any, d: GraphNode) => {
         if (!event.active) simulation.alphaTarget(0.3).restart();
         d.fx = d.x;

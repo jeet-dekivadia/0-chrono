@@ -176,7 +176,7 @@ export default function DashboardPage() {
           .filter(appointment => appointment && appointment.id)
           .map(appointment => ({
             ...appointment,
-            patient_name: appointment.patients?.user_profiles?.full_name || 'Unknown Patient'
+            patient_name: (appointment as any).patients?.user_profiles?.full_name || 'Unknown Patient'
           }))
         setTodaySchedule(safeAppointments)
       }
