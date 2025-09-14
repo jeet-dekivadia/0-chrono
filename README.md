@@ -24,7 +24,7 @@ The market opportunity was staggering. DrChrono, with its 100,000+ healthcare pr
 
 ## 🚀 Live Demo & Technical Details
 
-**Try 0chrono**: [https://0chrono.vercel.app](https://0chrono.vercel.app)
+**Try 0chrono**: [https://0chrono-yc.vercel.app](https://0chrono-yc.vercel.app)
 - Demo credentials: `demo@0chrono.com`
 - Voice commands enabled
 - Full AI workflow demonstration
