@@ -87,8 +87,7 @@ function mapTagToLabel(tag: string): string {
 
 function readGraphJSONFromRepo() {
   const appCwd = process.cwd()
-  const repoRoot = path.resolve(appCwd, '..')
-  const graphPath = path.join(repoRoot, 'graph.json')
+  const graphPath = path.join(process.cwd(), 'src', 'app', 'api', 'graph', 'prompts', 'graph.json')
   try {
     if (fs.existsSync(graphPath)) {
       const txt = fs.readFileSync(graphPath, { encoding: 'utf-8' })
@@ -97,9 +96,9 @@ function readGraphJSONFromRepo() {
     }
   } catch {}
   // Fallback to separate node lists if present
-  const diagnosesPath = path.join(repoRoot, 'diagnoses.json')
-  const labsPath = path.join(repoRoot, 'labs.json')
-  const medsPath = path.join(repoRoot, 'medications.json')
+  const diagnosesPath = path.join(process.cwd(), 'src', 'app', 'api', 'graph', 'prompts', 'diagnoses.json')
+  const labsPath = path.join(process.cwd(), 'src', 'app', 'api', 'graph', 'prompts', 'labs.json')
+  const medsPath = path.join(process.cwd(), 'src', 'app', 'api', 'graph', 'prompts', 'medications.json')
   const safeRead = (p: string) => {
     try { return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf-8')) : [] } catch { return [] }
   }

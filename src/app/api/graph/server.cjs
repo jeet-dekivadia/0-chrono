@@ -437,7 +437,7 @@ async function autobuildGraph(repoRootDir) {
 
   const allNodes = [...diagNodes, ...labNodes, ...medNodes];
   const graphObj = { Nodes: allNodes, Links: links };
-  const graphPath = path.join(repoRootDir, "graph.json");
+  const graphPath = path.join(__dirname, "prompts", "graph.json");
   fs.writeFileSync(graphPath, JSON.stringify(graphObj, null, 2), { encoding: "utf-8" });
   return graphObj;
 }
@@ -447,7 +447,7 @@ app.get("/graph", async (req, res) => {
   try {
     const thisDir = __dirname;
     const repoRoot = path.resolve(thisDir, "..", "..");
-    const graphPath = path.join(repoRoot, "graph.json");
+    const graphPath = path.join(__dirname, "prompts", "graph.json");
 
     let data = null;
     if (!fs.existsSync(graphPath)) {
@@ -635,7 +635,6 @@ async function generateLinksFromNodes({ repoRootDir, diagNodes, labNodes, medNod
 app.post("/graph/build", async (req, res) => {
   try {
     const body = req.body || {};
-    const repoRoot = path.resolve(__dirname, "..", "..");
 
     const diagNodes = normalizeNodeArray(body.diagnoses || body.diag || body.conditions);
     const labNodes = normalizeNodeArray(body.labs || body.lab_tests || body.labTests);
@@ -645,12 +644,12 @@ app.post("/graph/build", async (req, res) => {
       return res.status(400).json({ error: "No nodes provided. Include 'diagnoses', 'labs', or 'medications'." });
     }
 
-    const links = await generateLinksFromNodes({ repoRootDir: repoRoot, diagNodes, labNodes, medNodes });
+    const links = await generateLinksFromNodes({ repoRootDir: __dirname, diagNodes, labNodes, medNodes });
     const graphObj = { Nodes: [...diagNodes, ...labNodes, ...medNodes], Links: links };
 
     if (body.save === true || body.save_graph === true) {
       try {
-        const graphPath = path.join(repoRoot, "graph.json");
+        const graphPath = path.join(__dirname, "prompts", "graph.json");
         fs.writeFileSync(graphPath, JSON.stringify(graphObj, null, 2), { encoding: "utf-8" });
       } catch (_) {}
     }

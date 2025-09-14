@@ -49,7 +49,8 @@ export async function GET() {
   try {
     const appCwd = process.cwd()
     const repoRoot = path.resolve(appCwd, '..')
-    const graphPath = path.join(repoRoot, 'graph.json')
+    // Resolve graph.json relative to the route's prompts directory in the repo
+    const graphPath = path.join(process.cwd(), 'src', 'app', 'api', 'graph', 'prompts', 'graph.json')
 
     let data: any = safeReadJson(graphPath)
 
