@@ -4,8 +4,6 @@
 
 > **YC Challenge Submission**: What if DrChrono were founded today with AI at its core?
 
-![0chrono Logo](public/favicon.jpg)
-
 ---
 
 ## The Story
